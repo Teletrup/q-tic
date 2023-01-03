@@ -19,6 +19,9 @@
   text-align: center;
   vertical-align: middle;
 }
+.outer-cell-collapsed {
+  font-size: 50px;
+}
 
 .inner-table {
   width: 100%;
@@ -26,7 +29,7 @@
 }
 
 .disabled {
-  background: #999;
+  background: #AAA;
 }
 
 table {

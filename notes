@@ -1,0 +1,27 @@
+rename iRow, iCol to x, y?
+innerTable?
+sane numeric range iteration
+
+voodoo
+	ocell table as 'value' property
+		then isOccupied works for both
+
+translucent element that indicates "disabled"?
+
+separate outer cell and inner table?
+
+collapse the current cell before collapsing others
+  should it matter?
+
+when collapsing, exempt the source cell
+  what if the cell is collapsed directly?
+    call with null
+
+when icell isn't taken, block the opposite
+
+eliminate invalid states first
+factor out the click validation?
+
+advanced types, valid board, validation layer
+
+plain ol' subroutines
