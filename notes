@@ -1,3 +1,12 @@
+todo
+  literal edge case with updateWinner
+    didn't optional-chain all the way
+  non-classical win
+
+get a good debugging tool
+  
+
+
 rename iRow, iCol to x, y?
 innerTable?
 sane numeric range iteration
@@ -24,4 +33,19 @@ factor out the click validation?
 
 advanced types, valid board, validation layer
 
-plain ol' subroutines
+plain ol' subroutines?
+
+hacks
+  disabling an icell so it doesn't recur back and forth
+
+the weird freezes happen because the state changes, but the update doesn't return,
+so the state doesn't get rendered
+
+why don't I use the debugger
+and word highlighting
+
+have one queue, breadth first
+
+separate model and view
+  not clickable are always disabled
+    they are just gray when they're empty

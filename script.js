@@ -1,3 +1,4 @@
+import 'https://cdn.skypack.dev/preact/debug';
 import {h, render} from 'https://cdn.skypack.dev/preact';
 import {useReducer} from 'https://cdn.skypack.dev/preact/hooks'; //development version?
 import htm from 'https://cdn.skypack.dev/htm';
@@ -46,29 +47,30 @@ const oppositeCells = (board, oy, ox, iy, ix) => { //return both icell and ocell
   return [socell, sicell, soy, sox, siy, six];
 }
 
-const collapse = (board, player, oy, ox) => {
-  const ocell = board[oy][ox];
+
+//just take queue, destructure first arg
+const collapse = (state, queue, player, oy, ox) => {
+  const ocell = state.board[oy][ox];
   const content = ocell.content;
-  const queue = [];
   if (typeof content === 'string') return; //another hack
   for (const i in content) {
     for (const j in content[i]) {
       if (i == 1 && i == j) continue;
       const icell = content[i][j];
       if (icell.disabled) continue;
-      const [socell, sicell, soy, sox] = oppositeCells(board, oy, ox, i, j);
-      sicell.disabled = true; //explain hack
+      const [socell, sicell, soy, sox] = oppositeCells(state.board, oy, ox, i, j);
+      sicell.disabled = true; //explain the hack
       if (sicell.value) queue.push([sicell.value, soy, sox]);
     }
   }
-  ocell.content = player; 
-  queue.map(([player, oy, ox]) => collapse(board, player, oy, ox));
+  ocell.content = player; //hack update winner here?
+  queue.map(([player, oy, ox]) => collapse(state, queue, player, oy, ox));
 }
 
 const checkHalfLine = (state, iRow, iCol, [dirX, dirY]) => {
   const {board, next} = state;
   let count = 0;
-  while (board?.[iRow]?.[iCol].content === next) {
+  while (board?.[iRow]?.[iCol]?.content === next) {
     count++;
     iRow += dirX;
     iCol += dirY;
@@ -102,7 +104,7 @@ const updateWinner = (state, iRow, iCol) => {
   let won = false;
   for (const dir of dirs) {
     const count = checkLine(state, iRow, iCol, dir);
-    if (count >= 3) {
+    if (count >= 5) {
       won = true;
       colorLine(state, iRow, iCol, dir);
     }
@@ -117,7 +119,7 @@ const update = (state, action) => {
   const ocell = state.board[oy][ox];
 	if (ix == iy && ix == 1) {
     //factor out as 'collapse', map the queue
-    collapse(state.board, state.next, oy, ox);
+    collapse(state, [], state.next, oy, ox);
   } else {
     const icell = ocell.content[iy][ix];
     const [socell, sicell] = oppositeCells(state.board, ...action);
