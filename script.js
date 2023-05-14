@@ -34,7 +34,13 @@ const init = (w, h) => {
 	const initOutCell = () => ({content: initND([3, 3], initInCell), color: 'black'});
   const board = initND([h, w], initOutCell); //h & w other way around?
   disableEdges(board);
-  return {board: board, next: 'X', winner: null};
+  return {
+    board: board,
+    next: 'X',
+    score: {
+      'X': 0,
+      'O': 0,
+    }};
 }
 
 const oppositeCells = (board, oy, ox, iy, ix) => { //return both icell and ocell?
@@ -64,7 +70,8 @@ const collapse = (state, queue, player, oy, ox) => {
     }
   }
   ocell.content = player; //hack update winner here?
-  queue.map(([player, oy, ox]) => collapse(state, queue, player, oy, ox));
+  updateWinner(state, oy, ox);
+  queue.map(([player, oy, ox]) => collapse(state, queue, player, oy, ox)); //isn't that dfs?
 }
 
 const checkHalfLine = (state, iRow, iCol, [dirX, dirY]) => {
@@ -85,8 +92,9 @@ const checkLine = (state, iRow, iCol, [dirX, dirY]) => {
 }
 
 const colorHalfLine = (state, iRow, iCol, [dirX, dirY]) => {
-  const {board, next} = state;
+  const {board, next, score} = state;
   while (board?.[iRow]?.[iCol].content === next) {
+    if (board[iRow][iCol].color === 'black') score[next] += 1; // "colori" typo - that's why there's typescript
     board[iRow][iCol].color = 'red';
     iRow += dirX;
     iCol += dirY;
@@ -104,17 +112,17 @@ const updateWinner = (state, iRow, iCol) => {
   let won = false;
   for (const dir of dirs) {
     const count = checkLine(state, iRow, iCol, dir);
-    if (count >= 5) {
+    if (count >= 3) {
       won = true;
       colorLine(state, iRow, iCol, dir);
     }
   }
-  return won ? next : null;
+  //state.winner = won ? next : null; //last wins?
 }
 
 const update = (state, action) => {
   if (action == 'reset') return init(13, 11);
-  if (state.winner) return state;
+  //if (state.winner) return state;
   const [oy, ox, iy, ix] = action;
   const ocell = state.board[oy][ox];
 	if (ix == iy && ix == 1) {
@@ -128,7 +136,8 @@ const update = (state, action) => {
   return {
     board: state.board,
     next: (state.next === 'X') ? 'O' : 'X',
-    winner: updateWinner(state, oy, ox)
+    score: state.score,
+    //winner: state.winner
   }; //ponder returning the same state
 }
 
@@ -184,13 +193,9 @@ const App = () => {
     </table>
     next player: ${state.next}
     <br />
-    ${state.winner
-      ? ht`
-          winner: ${state.winner}
-          <br />
-        `
-      : null
-    }
+    score: <br />
+    X - ${state.score['X']}<br />
+    O - ${state.score['O']}<br />
     <button onclick=${() => dispatch('reset')}>reset</button>
     `;
 }

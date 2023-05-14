@@ -1,3 +1,6 @@
+it would be better of with just score
+  the score would be number of marks in a line longer than 2
+
 todo
   literal edge case with updateWinner
     didn't optional-chain all the way
@@ -49,3 +52,5 @@ have one queue, breadth first
 separate model and view
   not clickable are always disabled
     they are just gray when they're empty
+
+using stash instead of multiple files
