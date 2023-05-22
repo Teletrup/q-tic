@@ -9,16 +9,16 @@ const ht = htm.bind(h);
 const disableEdges = board => {
   const h = board.length;
   const w = board[0].length;
-  for (const iRow in board) {
+  for (const y in board) {
     for (let i=0; i<3; i++) {
-      board[iRow][0].content[i][0].disabled = true;
-      board[iRow][w - 1].content[i][2].disabled = true;
+      board[y][0].content[i][0].disabled = true;
+      board[y][w - 1].content[i][2].disabled = true;
     }
   }
-  for (const iCol in board[0]) {
+  for (const x in board[0]) {
     for (let i=0; i<3; i++) { //better way to iter?
-      board[0][iCol].content[0][i].disabled = true;
-      board[h - 1][iCol].content[2][i].disabled = true;
+      board[0][x].content[0][i].disabled = true;
+      board[h - 1][x].content[2][i].disabled = true;
     }
   }
 }
@@ -74,47 +74,47 @@ const collapse = (state, queue, player, oy, ox) => {
   queue.map(([player, oy, ox]) => collapse(state, queue, player, oy, ox)); //isn't that dfs?
 }
 
-const checkHalfLine = (state, iRow, iCol, [dirX, dirY]) => {
+const checkHalfLine = (state, y, x, [dirX, dirY]) => {
   const {board, next} = state;
   let count = 0;
-  while (board?.[iRow]?.[iCol]?.content === next) {
+  while (board?.[y]?.[x]?.content === next) {
     count++;
-    iRow += dirX;
-    iCol += dirY;
+    y += dirX;
+    x += dirY;
   }
   return count;
 }
 
-const checkLine = (state, iRow, iCol, [dirX, dirY]) => {
-  return checkHalfLine(state, iRow, iCol, [dirX, dirY])
-         + checkHalfLine(state, iRow, iCol, [-dirX, -dirY])
+const checkLine = (state, y, x, [dirX, dirY]) => {
+  return checkHalfLine(state, y, x, [dirX, dirY])
+         + checkHalfLine(state, y, x, [-dirX, -dirY])
          - 1;
 }
 
-const colorHalfLine = (state, iRow, iCol, [dirX, dirY]) => {
+const colorHalfLine = (state, y, x, [dirX, dirY]) => {
   const {board, next, score} = state;
-  while (board?.[iRow]?.[iCol].content === next) {
-    if (board[iRow][iCol].color === 'black') score[next] += 1; // "colori" typo - that's why there's typescript
-    board[iRow][iCol].color = 'red';
-    iRow += dirX;
-    iCol += dirY;
+  while (board?.[y]?.[x].content === next) {
+    if (board[y][x].color === 'black') score[next] += 1; // "colori" typo - that's why there's typescript
+    board[y][x].color = 'red';
+    y += dirX;
+    x += dirY;
   }
 }
 
-const colorLine = (state, iRow, iCol, [dirX, dirY]) => {
-  colorHalfLine(state, iRow, iCol, [dirX, dirY]);
-  colorHalfLine(state, iRow, iCol, [-dirX, -dirY]);
+const colorLine = (state, y, x, [dirX, dirY]) => {
+  colorHalfLine(state, y, x, [dirX, dirY]);
+  colorHalfLine(state, y, x, [-dirX, -dirY]);
 }
 
-const updateWinner = (state, iRow, iCol) => {
+const updateWinner = (state, y, x) => {
   const {board, next} = state;
   const dirs = [[1, 0], [0, 1], [1, 1], [1, -1]];
   let won = false;
   for (const dir of dirs) {
-    const count = checkLine(state, iRow, iCol, dir);
+    const count = checkLine(state, y, x, dir);
     if (count >= 3) {
       won = true;
-      colorLine(state, iRow, iCol, dir);
+      colorLine(state, y, x, dir);
     }
   }
   //state.winner = won ? next : null; //last wins?
@@ -142,9 +142,9 @@ const update = (state, action) => {
 }
 
 const OuterCell = props => {
-  const icellClick = (cell, iRow, iCol) => { //disambiguate (it's and inner cell)
+  const icellClick = (cell, iy, ix) => { //disambiguate (it's and inner cell)
     if (!cell.disabled && !cell.value) {							//or just call with outer cell (to handle collapsed)
-      props.dispatch([props.iRow, props.iCol, iRow, iCol]);
+      props.dispatch([props.oy, props.ox, iy, ix]);
     }
   } //yeet into update?
   return ht`
@@ -157,11 +157,11 @@ const OuterCell = props => {
             </font>`
         : ht`
           <table class='inner-table'>
-            ${props.cell.content.map((row, iRow) => ht`
+            ${props.cell.content.map((row, iy) => ht`
               <tr>
-                ${row.map((cell, iCol) => ht`
+                ${row.map((cell, ix) => ht`
                   <td class='inner-cell ${cell.disabled ? 'disabled' : ''}' 
-                   onclick=${() => icellClick(cell, iRow, iCol)}
+                   onclick=${() => icellClick(cell, iy, ix)}
                    disabled=${cell.disabled}>
                     ${cell.value}
                   </td>
@@ -179,12 +179,12 @@ const App = () => {
   const [state, dispatch] = useReducer(update, init(13, 11));
   return ht`
     <table>
-      ${state.board.map((row, iRow) => ht`
+      ${state.board.map((row, oy) => ht`
         <tr>
-          ${row.map((cell, iCol) => ht`
+          ${row.map((cell, ox) => ht`
             <${OuterCell}
-             iRow=${iRow}
-             iCol=${iCol}
+             oy=${oy}
+             ox=${ox}
              cell=${cell}
              dispatch=${dispatch}/>
           `)}

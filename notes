@@ -1,3 +1,53 @@
+
+
+[move]
+story behind vsmth
+  do component props do anything?
+  all I want it to do is to redraw board
+    and the only way I can do is to change a pointer
+    and changing that pointer means copying stuff
+      - "but immutability is a good practice"
+      - I'm already mutating stuff that's way too expensive to copy anyway
+
+immutability and the shallow checks
+  only if component props are actually checked
+  and they aren't in Preact
+  unless I did s
+
+but I copied the whole state in the previous thingamaboggles
+  so?
+
+but really, why is separating the game state and the UI a good idea?
+  reducing number of invalid states?
+  code that makes more sense?
+  separation of concerns?
+
+less stateful but more computationally intensive version recomputes color for each icell
+
+game state:
+  ocell:
+    | closed:
+      | X
+      | O
+    | open:
+      - domain
+      - [icell * 3 * 3] 
+
+icell:
+  | X
+  | O
+  | Disabled
+
+opened and closed ocells as classes?
+  yay
+  nay
+    seems like a wonky overkill
+
+open ocells have domains
+  it stat
+
+You can't join two ocells of the same domain
+
 it would be better of with just score
   the score would be number of marks in a line longer than 2
 
