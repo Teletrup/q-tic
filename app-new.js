@@ -39,21 +39,21 @@ function drawOcell(send, ocell, ox, oy) {
     ${typeof(ocell.content) === 'string'
       ? ht`<span class='open-ocell'>ocell.content</>`
       : ht`
-        <table class='inner-table'>
-          ${ocell.content.map((row, iy) => ht`
-            <tr>
-              ${row.map((icell, ix) => drawIcell(send, icell, ox, oy, ix, iy))}
-            </>
-          `)}
-        </>
-        `
+          <table class='inner-table'>
+            ${ocell.content.map((row, iy) => ht`
+              <tr>
+                ${row.map((icell, ix) => drawIcell(send, icell, ox, oy, ix, iy))}
+              </>
+            `)}
+          </>
+       `
     }
     </>
   `;
 }
 
 function App(props) {
-  const [state, send] = useReducer(update, init(13, 11));
+  const [state, send] = useReducer(update, null, () => init(13, 11));
   return ht`
     <table class='board'>
       ${state.board.map((row, oy) => ht`
