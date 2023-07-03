@@ -5,16 +5,28 @@ import htm from 'https://cdn.skypack.dev/htm';
 
 const ht = htm.bind(h);
 
-//validate separately
-function opposite(state, pos) {
+
+function Dicell(state, pos) { 
   const [ox, oy, ix, iy] = pos;
-  const [w, h] = state.boardSize;
+  const ocell = state.board[oy][ox];
+  const icell = ocell.content[iy][ix];
+  return {
+    state: state,
+    pos: pos,
+    ocell: ocell,
+    icell: icell,
+  }
+}
+//validate separately
+function opposite(dicell) {
+  const [ox, oy, ix, iy] = dicell.pos;
+  const [w, h] = dicell.state.boardSize;
   //ix2 = -(ix - 1) + 1;
   const ix2 = 2 - ix; //TODO explain & generalize
   const iy2 = 2 - iy;
   const ox2 = ox + (ix - 1);
   const oy2 = oy + (iy - 1);
-  return [ox2, oy2, ix2, iy2];
+  return Dicell(dicell.state, [ox2, oy2, ix2, iy2]);
 }
 
 function getOcell(state, pos) { //generalize to ocells as well?
@@ -27,30 +39,28 @@ function getIcell(state, pos) { //generalize to ocells as well?
   return state.board[oy][ox].content[iy][ix];
 }
 
-function map2d(arr, f) {
+function isMiddle(dicell) {
+  const [, , ix, iy] = dicell.pos;
+  return (ix == 1 && iy == 1);
+}
+
+function map2d(f, arr) {
   return arr.map((row, y) => row.map((val, x) => f(val, x, y)));
 }
 
-//TODO make it return collapsed?
-function collapse(state, pos, player, collapsed) {
-  const [ox, oy] = pos;
-  const ocell = getOcell(state, pos);
-  const content = ocell.content;
-  ocell.content = player;
-  map2d(content, (icell, ix, iy) => {
-    //middle cell doesn't matter. It get's set, but "content" is later overwritten, right?
-    if (icell.disabled) return;
-    const pos2 = opposite(state, [ox, oy, ix, iy]); 
-    const ocell2 = getOcell(state, pos2);
-    if (typeof(ocell2.content) === 'string') return;
-    const icell2 = getIcell(state, pos2);
-    if (icell.player === null) {
-      icell2.disabled = true;
-    } else {
-      collapse(state, pos2, icell2.player, collapsed);
+function collapse(dicell, player) {
+  const content = dicell.ocell.content;
+  dicell.ocell.content = player;
+  map2d(d1 => {  ///no indices
+    if (!isMiddle(d1)) {
+      const d2 = opposite(d1);
+      if (d1 === null) {
+        d2.icell.disabled = true;
+      } else {
+        collapse(d2); 
+      }
     }
-  });
-  collapsed.push(ocell);
+  }, content);
 }
 
 function update(state, msg) {
@@ -60,21 +70,16 @@ function update(state, msg) {
     case 'move':
       const pos = data; 
       const [ox, oy, ix, iy] = pos;
-      const icell = getIcell(state, pos);
-      if (icell.disabled) break;
-      if (ix == 1 && iy == 1) {
-        const collapsed = [];
-        collapse(state, pos, state.next, collapsed);
-        collapsed.map(ocell => {
-          //check if belongs to a winning row
-          //if yes, color and increment the score
-        });
+      const dicell = Dicell(_state, pos);
+      if (isMiddle(dicell)) {
+        collapse(dicell, state.next);
         break;
       }
-      const pos2 = opposite(state, pos);
-      const icell2 = getIcell(state, pos2);
-      icell.player = icell2.player = state.next;
+      const dicell2 = opposite(dicell); //VOODOO
+      dicell.icell.player = state.next;
+      dicell2.icell.player = state.next;
       //getIcell(state, opposite(state, pos)) = 'X';
+
   }
   _state.next = state.next === 'X' ? 'O' : 'X';
   return _state;
@@ -104,9 +109,9 @@ function init(w, h) {
     content: Array.from(Array(3), () => Array.from(Array(3), () => ({player: null}))),
   });
   const state = {
+    next: 'X',
     board: Array.from(Array(h), () => Array.from(Array(w), genOpenOcell)),
     boardSize: [w, h],
-    next: 'X'
   };
   disableEdges(state);
   return state;
